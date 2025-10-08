@@ -13,6 +13,7 @@ const NewEmployee = () => {
     //states collection
     const [empForm] = Form.useForm();
     const [loading,setLoading] = useState(false);
+    const [photo,setPhoto] = useState(null);
 
 
     //create new employee
@@ -20,10 +21,12 @@ const NewEmployee = () => {
         try{
             setLoading(true);
             let finalObj = trimData(values);
+            finalObj.profile = photo ? photo : "bankImages/dummy.jpg";
             const httpReq = http();      //for token request or without token request
             const {data} = await httpReq.post(`/api/users`,finalObj);
             swal("Success","Employee created!","success");
             empForm.resetFields();
+            setPhoto(null);
         }catch(err){
             if(err?.response?.data?.error?.code === 11000){
                 empForm.setFields([
@@ -39,6 +42,20 @@ const NewEmployee = () => {
             setLoading(false);
         }
     } 
+
+    //handle upload 
+    const handleUpload = async (e) => {
+        try{
+            let file = e.target.files[0];
+            const formData = new FormData();
+            formData.append("photo" , file);
+            const httpReq = http();
+            const {data} = await httpReq.post("/api/upload" , formData);
+            setPhoto(data.filePath);
+        }catch(err){
+            swal("Failed", "Unable to upload file" , "warning");
+        }
+    }
 
     //columns for table
     const columns = [
@@ -102,7 +119,7 @@ const NewEmployee = () => {
                         <Item
                         label="Profile"
                         name="xyz">
-                            <Input type="file" />
+                            <Input onChange={handleUpload} type="file" />
                         </Item>
                         <div className="grid md:grid-cols-2 gap-x-2">
                             <Item
