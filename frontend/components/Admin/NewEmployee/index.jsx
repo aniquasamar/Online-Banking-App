@@ -1,12 +1,10 @@
 import { DeleteOutlined, EditOutlined, EyeInvisibleOutlined } from "@ant-design/icons";
 import AdminLayout from "../../Layout/AdminLayout";
 import {Card , Form , Input , Button , Table} from "antd";
-import { trimData } from "../../../modules/modules";
-import axios from "axios";
+import { trimData , http } from "../../../modules/modules";
 import swal from "sweetalert";
 import { useState } from "react";
 
-axios.defaults.baseURL = import.meta.env.VITE_BASEURL;
 
 const {Item} = Form;
 
@@ -22,7 +20,8 @@ const NewEmployee = () => {
         try{
             setLoading(true);
             let finalObj = trimData(values);
-            const {data} = await axios.post(`/api/users`,finalObj);
+            const httpReq = http();      //for token request or without token request
+            const {data} = await httpReq.post(`/api/users`,finalObj);
             swal("Success","Employee created!","success");
             empForm.resetFields();
         }catch(err){
