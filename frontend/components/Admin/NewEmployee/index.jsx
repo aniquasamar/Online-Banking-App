@@ -1,11 +1,47 @@
 import { DeleteOutlined, EditOutlined, EyeInvisibleOutlined } from "@ant-design/icons";
 import AdminLayout from "../../Layout/AdminLayout";
 import {Card , Form , Input , Button , Table} from "antd";
+import { trimData } from "../../../modules/modules";
+import axios from "axios";
+import swal from "sweetalert";
+import { useState } from "react";
+
+axios.defaults.baseURL = import.meta.env.VITE_BASEURL;
 
 const {Item} = Form;
 
 const NewEmployee = () => {
 
+    //states collection
+    const [empForm] = Form.useForm();
+    const [loading,setLoading] = useState(false);
+
+
+    //create new employee
+    const onFinish = async (values) => {
+        try{
+            setLoading(true);
+            let finalObj = trimData(values);
+            const {data} = await axios.post(`/api/users`,finalObj);
+            swal("Success","Employee created!","success");
+            empForm.resetFields();
+        }catch(err){
+            if(err?.response?.data?.error?.code === 11000){
+                empForm.setFields([
+                    {
+                        name: "email",
+                        errors: ["Email already exists!"]
+                    }
+                ])
+            }else{
+                swal("Warning","Try again later","warning");
+            }
+        }finally{
+            setLoading(false);
+        }
+    } 
+
+    //columns for table
     const columns = [
         {
             title : "Profile",
@@ -60,7 +96,10 @@ const NewEmployee = () => {
             <div className="grid md:grid-cols-3 gap-3">
                 <Card 
                 title="Add new employee">
-                    <Form layout="vertical">
+                    <Form 
+                    form={empForm}
+                    onFinish={onFinish}
+                    layout="vertical">
                         <Item
                         label="Profile"
                         name="xyz">
@@ -99,6 +138,7 @@ const NewEmployee = () => {
                         </Item>
                         <Item>
                             <Button
+                            loading={loading}
                             type="text"
                             htmlType="submit"
                             className="!bg-blue-500 !text-white !font-bold !w-full">

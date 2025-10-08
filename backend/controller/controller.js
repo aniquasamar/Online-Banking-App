@@ -11,7 +11,7 @@ const createData = async (req,res,schema) => {
   }catch(error){
     if(error.code === 11000){
         res.status(422).json({
-        message : "Email already exist",
+        message : "Already exist",
         success : false,
         error
     })
