@@ -1,9 +1,9 @@
-import { DeleteOutlined, EditOutlined, EyeInvisibleOutlined } from "@ant-design/icons";
+import { DeleteOutlined, EditOutlined, EyeInvisibleOutlined, EyeOutlined } from "@ant-design/icons";
 import AdminLayout from "../../Layout/AdminLayout";
-import {Card , Form , Input , Button , Table} from "antd";
+import {Card, Form, Input, Button, message, Table, Image} from "antd";
 import { trimData , http } from "../../../modules/modules";
 import swal from "sweetalert";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 
 const {Item} = Form;
@@ -12,9 +12,25 @@ const NewEmployee = () => {
 
     //states collection
     const [empForm] = Form.useForm();
+    const [messageApi, context] = message.useMessage();
     const [loading,setLoading] = useState(false);
     const [photo,setPhoto] = useState(null);
+    const [allEmployee,setAllEmployee] = useState([]);
+    
+    // Get All Employee Data
+    useEffect(() => {
+    const fetcher = async () => {
+        try {
+            const httpReq = http();
+            const { data } = await httpReq.get('/api/users');
+            setAllEmployee(data.data);
+        } catch (error) {
+            messageApi.error('Unable to fetch data');
+        }
+    };
 
+    fetcher();
+    }, []);
 
     //create new employee
     const onFinish = async (values) => {
@@ -24,7 +40,14 @@ const NewEmployee = () => {
             finalObj.profile = photo ? photo : "bankImages/dummy.jpg";
             const httpReq = http();      //for token request or without token request
             const {data} = await httpReq.post(`/api/users`,finalObj);
-            swal("Success","Employee created!","success");
+
+            const obj = {
+                email: finalObj.email,
+                password: finalObj.password
+            };
+            const res = await httpReq.post(`/api/send-email`,obj);
+
+            messageApi.success('Employee Created');
             empForm.resetFields();
             setPhoto(null);
         }catch(err){
@@ -36,7 +59,8 @@ const NewEmployee = () => {
                     }
                 ])
             }else{
-                swal("Warning","Try again later","warning");
+                messageApi.error('Try again later');
+                
             }
         }finally{
             setLoading(false);
@@ -53,7 +77,7 @@ const NewEmployee = () => {
             const {data} = await httpReq.post("/api/upload" , formData);
             setPhoto(data.filePath);
         }catch(err){
-            swal("Failed", "Unable to upload file" , "warning");
+            messageApi.error('Failed');
         }
     }
 
@@ -61,7 +85,16 @@ const NewEmployee = () => {
     const columns = [
         {
             title : "Profile",
-            key : "profile"
+            dataIndex: 'profile',
+            key : "profile",
+            render: (src, obj) => (
+            <Image
+                src={`${import.meta.env.VITE_BASEURL}/${obj.profile}`}
+                className="rounded-full"
+                width={40}
+                height={40}
+            />
+            )
         },
         {
             title : "Fullname",
@@ -86,12 +119,13 @@ const NewEmployee = () => {
         {
             title : "Action",
             key : "action",
-            render : () => (
+            fixed : "right",
+            render : (_, obj) => (
                 <div className="flex gap-1">
                     <Button 
                     type="text"
-                    className="!bg-pink-100 !text-pink-500"
-                    icon={<EyeInvisibleOutlined />}
+                    className={`${obj.isActive ? "!bg-indigo-100 !text-indigo-500" : "!bg-pink-100 !text-pink-500"}`}
+                    icon={obj.isActive ? <EyeOutlined /> : <EyeInvisibleOutlined />}
                     />
                     <Button 
                     type="text"
@@ -109,6 +143,7 @@ const NewEmployee = () => {
     ]
     return (
         <AdminLayout>
+            {context}
             <div className="grid md:grid-cols-3 gap-3">
                 <Card 
                 title="Add new employee">
@@ -163,12 +198,16 @@ const NewEmployee = () => {
                         </Item>
                     </Form>
                 </Card>
-                <Card 
-                className="md:col-span-2"
-                title="Employee List">
+                    <Card 
+                    className="md:col-span-2"
+                    title="Employee List"
+                    style={{ overflowX: 'auto' }}
+                    >
                     <Table 
                     columns={columns}
-                    dataSource={[{},{}]}/>
+                    dataSource={allEmployee}
+                    scroll={{ x: 'max-content' }}
+                    />
                 </Card>
             </div>
         </AdminLayout>
