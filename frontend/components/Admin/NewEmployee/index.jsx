@@ -1,6 +1,6 @@
 import { DeleteOutlined, EditOutlined, EyeInvisibleOutlined, EyeOutlined } from "@ant-design/icons";
 import AdminLayout from "../../Layout/AdminLayout";
-import {Card, Form, Input, Button, message, Table, Image} from "antd";
+import {Card, Form, Input, Button, message, Table, Image, Popconfirm} from "antd";
 import { trimData , http } from "../../../modules/modules";
 import swal from "sweetalert";
 import { useEffect, useState } from "react";
@@ -16,6 +16,7 @@ const NewEmployee = () => {
     const [loading,setLoading] = useState(false);
     const [photo,setPhoto] = useState(null);
     const [allEmployee,setAllEmployee] = useState([]);
+    const [number, setNumber] = useState(0);
     
     // Get All Employee Data
     useEffect(() => {
@@ -30,7 +31,7 @@ const NewEmployee = () => {
     };
 
     fetcher();
-    }, []);
+    }, [number]);
 
     //create new employee
     const onFinish = async (values) => {
@@ -38,6 +39,7 @@ const NewEmployee = () => {
             setLoading(true);
             let finalObj = trimData(values);
             finalObj.profile = photo ? photo : "bankImages/dummy.jpg";
+            finalObj.key = finalObj.email;
             const httpReq = http();      //for token request or without token request
             const {data} = await httpReq.post(`/api/users`,finalObj);
 
@@ -50,6 +52,7 @@ const NewEmployee = () => {
             messageApi.success('Employee Created');
             empForm.resetFields();
             setPhoto(null);
+            setNumber(number + 1);
         }catch(err){
             if(err?.response?.data?.error?.code === 11000){
                 empForm.setFields([
@@ -66,6 +69,35 @@ const NewEmployee = () => {
             setLoading(false);
         }
     } 
+
+    const updateIsActive = async (id, isActive) => {
+        try {
+            
+            const obj = {
+              isActive : !isActive,
+            };
+
+            const httpReq = http();
+            await httpReq.put(`/api/users/${id}`, obj);
+
+            messageApi.success('Record updated successfully');
+            setNumber(number + 1);
+        } catch (error) {
+            messageApi.error('Unable to update isActive !');
+        }
+    };
+
+    const onDeleteUser = async (id) => {
+    try {
+        const httpReq = http();
+        await httpReq.delete(`/api/users/${id}`);
+
+        messageApi.success('Employee deleted successfully!');
+        setNumber(number + 1);
+    } catch (error) {
+        messageApi.error('Unable to delete user');
+    }
+    };
 
     //handle upload 
     const handleUpload = async (e) => {
@@ -122,21 +154,36 @@ const NewEmployee = () => {
             fixed : "right",
             render : (_, obj) => (
                 <div className="flex gap-1">
-                    <Button 
-                    type="text"
-                    className={`${obj.isActive ? "!bg-indigo-100 !text-indigo-500" : "!bg-pink-100 !text-pink-500"}`}
-                    icon={obj.isActive ? <EyeOutlined /> : <EyeInvisibleOutlined />}
-                    />
+                    <Popconfirm
+                    title="Are you sure?"
+                    description="Once you update, you can also re-update!"
+                    onCancel={()=>messageApi.info("No changes made!")}
+                    onConfirm={()=>updateIsActive(obj._id, obj.isActive)}
+                    >
+                        <Button 
+                        type="text"
+                        className={`${obj.isActive ? "!bg-indigo-100 !text-indigo-500" : "!bg-pink-100 !text-pink-500"}`}
+                        icon={obj.isActive ? <EyeOutlined /> : <EyeInvisibleOutlined />}
+                        />
+                    </Popconfirm>
                     <Button 
                     type="text"
                     className="!bg-green-100 !text-green-500"
                     icon={<EditOutlined />}
                     />
+                    <Popconfirm
+                    title="Are you sure?"
+                    description="Once you deleted you can not restore"
+                    onCancel={() => messageApi.info('Your data is safe')}
+                    onConfirm={() => onDeleteUser(obj._id)}
+                    >
                     <Button 
                     type="text"
                     className="!bg-red-100 !text-red-500"
                     icon={<DeleteOutlined />}
                     />
+                    </Popconfirm>
+                    
                 </div>
             )
         },

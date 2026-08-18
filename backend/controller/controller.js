@@ -27,7 +27,7 @@ const createData = async (req,res,schema) => {
   }catch(error){
     if(error.code === 11000){
         res.status(422).json({
-        message : "Already exist",
+        message : "Already exist!",
         success : false,
         error
     })
@@ -42,7 +42,44 @@ const createData = async (req,res,schema) => {
   }
 }
 
+const updateData = async (req, res, schema) => {
+  try {
+    const { id } = req.params;
+    const data = req.body;
+    const dbRes = await dbService.updateRecord(id, data, schema);
+
+    return res.status(200).json({
+      message: 'Record updated!',
+      data: dbRes
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+};
+
+const deleteData = async (req, res, Schema) => {
+  try {
+    const { id } = req.params;
+    const dbRes = await dbService.deleteRecord(id, Schema);
+
+    return res.status(200).json({
+      message: 'Record deleted!',
+      data: dbRes
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
     createData,
-    getData
+    getData,
+    updateData,
+    deleteData
 }
