@@ -15,6 +15,7 @@ const NewEmployee = () => {
     const [messageApi, context] = message.useMessage();
     const [loading,setLoading] = useState(false);
     const [photo,setPhoto] = useState(null);
+    const [edit, setEdit] = useState(null);
     const [allEmployee,setAllEmployee] = useState([]);
     const [number, setNumber] = useState(0);
     
@@ -70,6 +71,7 @@ const NewEmployee = () => {
         }
     } 
 
+    //update isActive button from employee list
     const updateIsActive = async (id, isActive) => {
         try {
             
@@ -87,6 +89,7 @@ const NewEmployee = () => {
         }
     };
 
+    //delete employee from employee list
     const onDeleteUser = async (id) => {
     try {
         const httpReq = http();
@@ -96,6 +99,35 @@ const NewEmployee = () => {
         setNumber(number + 1);
     } catch (error) {
         messageApi.error('Unable to delete user');
+    }
+    };
+
+    //update employee list
+    const onEditUser = async (obj) => {
+    setEdit(obj);
+    empForm.setFieldsValue(obj);
+    };
+
+    const onUpdate = async (values) => {
+    try {
+        setLoading(true);
+        let finalObj = trimData(values);
+
+        if (photo) {
+        finalObj.profile = photo;
+        }
+
+        const httpReq = http();
+        await httpReq.put(`/api/users/${edit._id}`, finalObj);
+
+        messageApi.success('Employee updated successfully');
+        setNumber(number + 1);
+        setEdit(null);
+        empForm.resetFields();
+    } catch (error) {
+        messageApi.error('Unable to update employee');
+    } finally {
+        setLoading(false);
     }
     };
 
@@ -166,22 +198,29 @@ const NewEmployee = () => {
                         icon={obj.isActive ? <EyeOutlined /> : <EyeInvisibleOutlined />}
                         />
                     </Popconfirm>
-                    <Button 
-                    type="text"
-                    className="!bg-green-100 !text-green-500"
-                    icon={<EditOutlined />}
-                    />
                     <Popconfirm
-                    title="Are you sure?"
-                    description="Once you deleted you can not restore"
-                    onCancel={() => messageApi.info('Your data is safe')}
-                    onConfirm={() => onDeleteUser(obj._id)}
-                    >
-                    <Button 
-                    type="text"
-                    className="!bg-red-100 !text-red-500"
-                    icon={<DeleteOutlined />}
-                    />
+                        title="Are you sure?"
+                        description="Once you update you can also re update"
+                        onCancel={() => messageApi.info("No changes occur")}
+                        onConfirm={() => onEditUser(obj)}
+                        >
+                        <Button 
+                            type="text"
+                            className="!bg-green-100 !text-green-500"
+                            icon={<EditOutlined />}
+                        />
+                    </Popconfirm>
+                    <Popconfirm
+                        title="Are you sure?"
+                        description="Once you deleted you can not restore"
+                        onCancel={() => messageApi.info('Your data is safe')}
+                        onConfirm={() => onDeleteUser(obj._id)}
+                        >
+                        <Button 
+                        type="text"
+                        className="!bg-red-100 !text-red-500"
+                        icon={<DeleteOutlined />}
+                        />
                     </Popconfirm>
                     
                 </div>
@@ -196,7 +235,7 @@ const NewEmployee = () => {
                 title="Add new employee">
                     <Form 
                     form={empForm}
-                    onFinish={onFinish}
+                    onFinish={edit ? onUpdate : onFinish}
                     layout="vertical">
                         <Item
                         label="Profile"
@@ -226,7 +265,7 @@ const NewEmployee = () => {
                             name="password"
                             label="Password"
                             rules={[{required:true}]}>
-                                <Input />
+                                <Input disabled = {edit ? true : false}/>
                             </Item>
                         </div>
                         <Item
@@ -235,13 +274,25 @@ const NewEmployee = () => {
                             <Input.TextArea />
                         </Item>
                         <Item>
+                            {edit ? (
                             <Button
-                            loading={loading}
-                            type="text"
-                            htmlType="submit"
-                            className="!bg-blue-500 !text-white !font-bold !w-full">
+                                loading={loading}
+                                type="text"
+                                htmlType="submit"
+                                className="!bg-rose-500 !text-white !font-bold !w-full"
+                            >
+                                Update
+                            </Button>
+                            ) : (
+                            <Button
+                                loading={loading}
+                                type="text"
+                                htmlType="submit"
+                                className="!bg-blue-500 !text-white !font-bold !w-full"
+                            >
                                 Submit
                             </Button>
+                            )}
                         </Item>
                     </Form>
                 </Card>
