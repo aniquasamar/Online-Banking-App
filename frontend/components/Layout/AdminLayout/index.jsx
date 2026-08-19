@@ -7,6 +7,7 @@ import {
     DashboardOutlined,
     VideoCameraOutlined,
     GiftOutlined,
+    BranchesOutlined,
 } from '@ant-design/icons';
 import { Button, Layout, Menu, theme } from 'antd';
 import {Link , useLocation} from "react-router-dom" ;
@@ -25,6 +26,12 @@ const AdminLayout = ( {children} ) => {
             key: '/admin/branding',
             icon: <GiftOutlined />,
             label: <Link to="/admin/branding">Branding</Link>,
+        },
+        // In sidebar navigation items array:
+        {
+        key: '/admin/branch',
+        icon: <BranchesOutlined />,
+        label: <Link to="/admin/branch">Branch</Link>,
         },
         {
             key: '/admin/new-employee',

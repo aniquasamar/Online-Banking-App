@@ -10,6 +10,7 @@ const usersRouter = require("./routes/users.routes");
 const uploadRouter = require("./routes/upload.routes");
 const emailRouter = require('./routes/send-email.routes');
 const brandingRouter = require('./routes/branding.routes');
+const branchRouter = require('./routes/branch.routes');
 
 
 // view engine setup
@@ -28,6 +29,7 @@ app.use("/api/users" , usersRouter);
 app.use("/api/upload" , uploadRouter);
 app.use('/api/send-email', emailRouter);
 app.use('/api/branding', brandingRouter);
+app.use('/api/branch', branchRouter);
 
 
 // catch 404 and forward to error handler
