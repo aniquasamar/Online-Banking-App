@@ -8,6 +8,7 @@ import {
     VideoCameraOutlined,
     GiftOutlined,
     BranchesOutlined,
+    DollarCircleOutlined,
 } from '@ant-design/icons';
 import { Button, Layout, Menu, theme } from 'antd';
 import {Link , useLocation} from "react-router-dom" ;
@@ -32,6 +33,11 @@ const AdminLayout = ( {children} ) => {
         key: '/admin/branch',
         icon: <BranchesOutlined />,
         label: <Link to="/admin/branch">Branch</Link>,
+        },
+        {
+        key: '/admin/currency',
+        icon: <DollarCircleOutlined />,
+        label: <Link to="/admin/currency">Currency</Link>,
         },
         {
             key: '/admin/new-employee',
