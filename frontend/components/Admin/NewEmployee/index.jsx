@@ -1,8 +1,9 @@
 import { DeleteOutlined, EditOutlined, EyeInvisibleOutlined, EyeOutlined } from "@ant-design/icons";
 import AdminLayout from "../../Layout/AdminLayout";
-import {Card, Form, Input, Button, message, Table, Image, Popconfirm} from "antd";
-import { trimData , http } from "../../../modules/modules";
+import {Card, Form, Input, Button, message, Table, Image, Popconfirm, Select} from "antd";
+import { trimData , http , fetchData } from "../../../modules/modules";
 import swal from "sweetalert";
+import useSWR from "swr";
 import { useEffect, useState } from "react";
 
 
@@ -17,8 +18,28 @@ const NewEmployee = () => {
     const [photo,setPhoto] = useState(null);
     const [edit, setEdit] = useState(null);
     const [allEmployee,setAllEmployee] = useState([]);
+    const [allBranch, setAllBranch] = useState([]);
     const [number, setNumber] = useState(0);
     
+    // Get Branch Data via SWR
+    const { data: branches, error: bError } = useSWR('/api/branch', fetchData, {
+        revalidateOnFocus: false,
+        revalidateOnReconnect: false,
+        refreshInterval: 10000
+    });
+
+    // Prepare branch options for Select component
+    useEffect(() => {
+        if (branches) {
+            let filter = branches?.data?.map((item) => ({
+                label: item.branchName,
+                value: item.branchName,
+                key: item.key
+            }));
+            setAllBranch(filter);
+        }
+    }, [branches]);
+
     // Get All Employee Data
     useEffect(() => {
     const fetcher = async () => {
@@ -41,6 +62,7 @@ const NewEmployee = () => {
             let finalObj = trimData(values);
             finalObj.profile = photo ? photo : "bankImages/dummy.jpg";
             finalObj.key = finalObj.email;
+            finalObj.userType = "employee";
             const httpReq = http();      //for token request or without token request
             const {data} = await httpReq.post(`/api/users`,finalObj);
 
@@ -161,6 +183,25 @@ const NewEmployee = () => {
             )
         },
         {
+            title: "User Type",
+            dataIndex: "userType",
+            key: "userType",
+            render: (text) => {
+                if (text === "admin") {
+                    return <span className="text-indigo-500 capitalize">{text}</span>;
+                } else if (text === "employee") {
+                    return <span className="text-green-500 capitalize">{text}</span>;
+                } else {
+                    return <span className="text-red-500 capitalize">{text}</span>;
+                }
+            }
+        },
+        {
+            title: "Branch",
+            dataIndex: "branch",
+            key: "branch"
+        },
+        {
             title : "Fullname",
             dataIndex : "fullname",
             key : "fullname"
@@ -237,6 +278,17 @@ const NewEmployee = () => {
                     form={empForm}
                     onFinish={edit ? onUpdate : onFinish}
                     layout="vertical">
+
+                        <Item
+                            label="Select Branch"
+                            name="branch"
+                            rules={[{ required: true }]}
+                        >
+                            <Select
+                                placeholder="Select branch"
+                                options={allBranch}
+                            />
+                        </Item>
                         <Item
                         label="Profile"
                         name="xyz">

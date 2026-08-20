@@ -19,3 +19,13 @@ export const trimData = (obj) => {
     }
     return finalObj;
 }
+//fetcher
+export const fetchData = async (api) => {
+  try {
+    const httpReq = http();
+    const { data } = await httpReq.get(api);
+    return data;
+  } catch (error) {
+    return null;
+  }
+};
