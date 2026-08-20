@@ -1,4 +1,4 @@
-import { DeleteOutlined, EditOutlined, EyeInvisibleOutlined, EyeOutlined } from "@ant-design/icons";
+import { DeleteOutlined, EditOutlined, EyeInvisibleOutlined, EyeOutlined, SearchOutlined } from "@ant-design/icons";
 import AdminLayout from "../../Layout/AdminLayout";
 import {Card, Form, Input, Button, message, Table, Image, Popconfirm, Select} from "antd";
 import { trimData , http , fetchData } from "../../../modules/modules";
@@ -18,6 +18,7 @@ const NewEmployee = () => {
     const [photo,setPhoto] = useState(null);
     const [edit, setEdit] = useState(null);
     const [allEmployee,setAllEmployee] = useState([]);
+    const [finalEmployee, setFinalEmployee] = useState([]);
     const [allBranch, setAllBranch] = useState([]);
     const [number, setNumber] = useState(0);
     
@@ -47,6 +48,7 @@ const NewEmployee = () => {
             const httpReq = http();
             const { data } = await httpReq.get('/api/users');
             setAllEmployee(data.data);
+            setFinalEmployee(data.data);
         } catch (error) {
             messageApi.error('Unable to fetch data');
         }
@@ -92,7 +94,54 @@ const NewEmployee = () => {
             setLoading(false);
         }
     } 
+    // search coding
+    const onSearch = (e) => {
+        let value = e.target.value.trim().toLowerCase();
+        
+        //THIS WAS NOT WORKING SO CHANGED IT TO GEMINI CODE GIVEN BELOW
+        // let filter = finalEmployee.filter((emp) => {
+        //     if (emp.fullname?.toLowerCase().indexOf(value) !== -1) {
+        //         return emp;
+        //     } else if (emp.userType?.toLowerCase().indexOf(value) !== -1) {
+        //         return emp;
+        //     } else if (emp.email?.toLowerCase().indexOf(value) !== -1) {
+        //         return emp;
+        //     } else if (emp.branch?.toLowerCase().indexOf(value) !== -1) {
+        //         return emp;
+        //     } else if (emp.mobile?.toString().toLowerCase().indexOf(value) !== -1) {
+        //         return emp;
+        //     } else if (emp.address?.toLowerCase().indexOf(value) !== -1) {
+        //         return emp;
+        //     }
+        // });
 
+        // 1. If input is empty/cleared, reset table to all records
+        if (!value) {
+            setAllEmployee(finalEmployee);
+            return;
+        }
+
+        // 2. Filter using optional fallbacks to avoid undefined crashes
+        let filter = finalEmployee.filter((emp) => {
+            const fullname = (emp.fullname || "").toLowerCase();
+            const userType = (emp.userType || "").toLowerCase();
+            const email = (emp.email || "").toLowerCase();
+            const branch = (emp.branch || "").toLowerCase();
+            const mobile = (emp.mobile ? emp.mobile.toString() : "").toLowerCase();
+            const address = (emp.address || "").toLowerCase();
+
+            return (
+                fullname.includes(value) ||
+                userType.includes(value) ||
+                email.includes(value) ||
+                branch.includes(value) ||
+                mobile.includes(value) ||
+                address.includes(value)
+            );
+        });
+
+  setAllEmployee(filter);
+};
     //update isActive button from employee list
     const updateIsActive = async (id, isActive) => {
         try {
@@ -352,6 +401,15 @@ const NewEmployee = () => {
                     className="md:col-span-2"
                     title="Employee List"
                     style={{ overflowX: 'auto' }}
+                    extra={
+                        <div>
+                            <Input
+                                placeholder="Search by all"
+                                prefix={<SearchOutlined />}
+                                onChange={onSearch}
+                            />
+                        </div>
+                    }
                     >
                     <Table 
                     columns={columns}
