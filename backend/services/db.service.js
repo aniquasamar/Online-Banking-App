@@ -8,6 +8,11 @@ const findAllRecord = async (schema) => {
     return dbRes;
 }
 
+const findOneRecord = async (query, Schema) => {
+  const dbRes = await Schema.findOne(query);
+  return dbRes;
+};
+
 const createNewRecord = async (data , schema) => {
     const dbRes = await new schema(data).save();
     return dbRes;
@@ -27,5 +32,6 @@ module.exports = {
     findAllRecord,
     createNewRecord,
     updateRecord,
-    deleteRecord
+    deleteRecord,
+    findOneRecord
 }

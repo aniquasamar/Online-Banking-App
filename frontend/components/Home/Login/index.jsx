@@ -1,15 +1,26 @@
 import { LockOutlined , UserOutlined} from "@ant-design/icons";
-import { Card , Form , Input , Button} from "antd";
+import { Card , Form , Input , Button, message} from "antd";
+import { trimData, http } from '../../../modules/modules';
 
 const {Item} = Form;
-const Login = () =>{
+const Login = () => {
+    const [messageApi, context] = message.useMessage();
+    const onFinish = async (values) => {
+        try {
+            const finalObj = trimData(values);
+            const httpReq = http();
+            const { data } = await httpReq.post('/api/login', finalObj);
 
-    const onFinish = (values) =>{
-        console.log(values);
-    }
+            console.log(data);
+            messageApi.success('Login Success');
+        } catch (err) {
+            messageApi.error(err?.response?.data?.message || 'Login failed');
+        }
+    };
 
     return (
         <div className="flex">
+            {context}
             <div className="w-1/2 hidden md:flex items-center justify-center">
                 <img src="/bank.jpg" 
                 alt="Bank"
@@ -27,7 +38,7 @@ const Login = () =>{
                         layout="vertical"
                     >
                         <Item
-                        name="username"
+                        name="email"
                         label="Username"
                         rules={[{required:true}]}
                         >
