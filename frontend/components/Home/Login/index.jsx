@@ -1,18 +1,49 @@
-import { LockOutlined , UserOutlined} from "@ant-design/icons";
-import { Card , Form , Input , Button, message} from "antd";
+import { LockOutlined, UserOutlined } from "@ant-design/icons";
+import { Card, Form, Input, Button, message } from "antd";
 import { trimData, http } from '../../../modules/modules';
+import Cookies from 'universal-cookie';
+import { useNavigate } from 'react-router-dom';
 
-const {Item} = Form;
+const { Item } = Form;
 const Login = () => {
     const [messageApi, context] = message.useMessage();
+
+    const navigate = useNavigate();
+
+    const cookies = new Cookies();
+    const expires = new Date();
+    expires.setDate(expires.getDate() + 3);
+
     const onFinish = async (values) => {
         try {
             const finalObj = trimData(values);
             const httpReq = http();
             const { data } = await httpReq.post('/api/login', finalObj);
+            const { token } = data;
 
-            console.log(data);
-            messageApi.success('Login Success');
+            if (data?.isLogged && data?.userType === 'admin') {
+                cookies.set('authToken', token, {
+                    path: '/',
+                    expires
+                });
+                navigate('/admin');
+            } else if (data?.isLogged && data?.userType === 'employee') {
+                cookies.set('authToken', token, {
+                    path: '/',
+                    expires
+                });
+                navigate('/employee');
+            } else if (data?.isLogged && data?.userType === 'customer') {
+                cookies.set('authToken', token, {
+                    path: '/',
+                    expires
+                });
+                navigate('/customer');
+            } else {
+                messageApi.error('Wrong credentials');
+            }
+            // console.log(data);
+            // messageApi.success('Login Success');
         } catch (err) {
             messageApi.error(err?.response?.data?.message || 'Login failed');
         }
@@ -49,7 +80,7 @@ const Login = () => {
                         label="Password"
                         rules={[{required:true}]}
                         >
-                            <Input prefix={<LockOutlined />} placeholder="Enter your password" />
+                            <Input.Password prefix={<LockOutlined />} placeholder="Enter your password" />
                         </Item>
                         <Item>
                             <Button

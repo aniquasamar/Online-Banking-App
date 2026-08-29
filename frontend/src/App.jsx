@@ -1,35 +1,59 @@
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from "react-router-dom"
-import Homepage from "../components/Home";
-import AdminDashboard from "../components/Admin";
-import Branding from '../components/Admin/Branding';
-import Branch from '../components/Admin/Branch';
-import NewEmployee from "../components/Admin/NewEmployee";
-import Currency from '../components/Admin/Currency';
-import EmployeeDashboard from '../components/Employee';
-import PageNotFound from '../components/PageNotFound';
+import Guard from '../components/Guard';
+import Loader from '../components/Loader';
+
+const Homepage = lazy(() => import('../components/Home'));
+const AdminDashboard = lazy(() => import('../components/Admin'));
+const Branding = lazy(() => import('../components/Admin/Branding'));
+const Branch = lazy(() => import('../components/Admin/Branch'));
+const Currency = lazy(() => import('../components/Admin/Currency'));
+const NewEmployee = lazy(() => import('../components/Admin/NewEmployee'));
+const EmployeeDashboard = lazy(() => import('../components/Employee'));
+const PageNotFound = lazy(() => import('../components/PageNotFound'));
+// import Homepage from "../components/Home";
+// import AdminDashboard from "../components/Admin";
+// import Branding from '../components/Admin/Branding';
+// import Branch from '../components/Admin/Branch';
+// import NewEmployee from "../components/Admin/NewEmployee";
+// import Currency from '../components/Admin/Currency';
+// import EmployeeDashboard from '../components/Employee';
+// import PageNotFound from '../components/PageNotFound';
 
 const App = () => {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Homepage />} />
-        {/* Start Admin Related Routes */}
-        <Route path="/admin/*">
-          <Route index element={<AdminDashboard />} />
-          <Route path="branding" element={<Branding />} />
-          <Route path="branch" element={<Branch />} />
-          <Route path="currency" element={<Currency />} />
-          <Route path="new-employee" element={<NewEmployee />} />
-        </Route>
-        {/* End Admin Related Routes */}
+      <Suspense fallback={<Loader />}>
+        <Routes>
+          <Route path="/" element={<Homepage />} />
 
-        {/* Start Employee Related Routes */}
-        <Route path="/employee/*">
-          <Route index element={<EmployeeDashboard />} />
-        </Route>
-        {/* End Employee Related Routes */}
-        <Route path="/*" element={<PageNotFound />} />
-      </Routes>
+          {/* Start Admin Related Routes */}
+          <Route
+            path="/admin"
+            element={<Guard endpoint="/api/verify-token" role="admin" />}
+          >
+            <Route index element={<AdminDashboard />} />
+            <Route path="branding" element={<Branding />} />
+            <Route path="branch" element={<Branch />} />
+            <Route path="currency" element={<Currency />} />
+            <Route path="new-employee" element={<NewEmployee />} />
+            <Route path="*" element={<PageNotFound />} />
+          </Route>
+          {/* End Admin Related Routes */}
+
+          {/* Start Employee Related Routes */}
+          <Route
+            path="/employee"
+            element={<Guard endpoint="/api/verify-token" role="employee" />}
+          >
+            <Route index element={<EmployeeDashboard />} />
+            <Route path="*" element={<PageNotFound />} />
+          </Route>
+          {/* End Employee Related Routes */}
+
+          <Route path="*" element={<PageNotFound />} />
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   )
 };

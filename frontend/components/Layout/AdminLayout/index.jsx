@@ -6,17 +6,29 @@ import {
     UserOutlined,
     DashboardOutlined,
     VideoCameraOutlined,
+    LogoutOutlined,
     GiftOutlined,
     BranchesOutlined,
     DollarCircleOutlined,
 } from '@ant-design/icons';
 import { Button, Layout, Menu, theme } from 'antd';
-import {Link , useLocation} from "react-router-dom" ;
+import {Link , useLocation, useNavigate} from "react-router-dom" ;
+import Cookies from 'universal-cookie';
+
 const { Header, Sider, Content } = Layout;
+const cookies = new Cookies();
+
 const AdminLayout = ( {children} ) => {
-    
+    const navigate = useNavigate();
     const {pathname} = useLocation();
     console.log(pathname);
+
+    const logoutFunc = () => {
+        sessionStorage.removeItem('userInfo');
+        cookies.remove('authToken');
+        navigate('/');
+    };
+
     const items = [
         {
             key: '/admin',
@@ -43,6 +55,19 @@ const AdminLayout = ( {children} ) => {
             key: '/admin/new-employee',
             icon: <UserOutlined />,
             label: <Link to="/admin/new-employee">New Employee</Link>,
+        },
+        {
+            key: '/admin/logout',
+            icon: <LogoutOutlined />,
+            label: (
+                <Button
+                    type="text"
+                    className="!text-gray-300 !font-semibold"
+                    onClick={logoutFunc}
+                >
+                    Logout
+                </Button>
+            ),
         },
     ]
     const [collapsed, setCollapsed] = useState(false);
