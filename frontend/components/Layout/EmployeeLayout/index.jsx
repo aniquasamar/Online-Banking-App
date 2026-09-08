@@ -5,6 +5,7 @@ import {
   MenuUnfoldOutlined,
   UploadOutlined,
   UserOutlined,
+  AccountBookOutlined,
   DashboardOutlined,
   VideoCameraOutlined,
   LogoutOutlined,
@@ -33,6 +34,11 @@ const EmployeeLayout = ({ children }) => {
       key: '/employee',
       icon: <DashboardOutlined />,
       label: <Link to="/employee">Dashboard</Link>,
+    },
+    {
+      key: '/employee/new-account',
+      icon: <AccountBookOutlined />,
+      label: <Link to="/employee/new-account">New Account</Link>,
     },
     {
       key: '/admin/logout',
