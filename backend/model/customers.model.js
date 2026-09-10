@@ -12,6 +12,10 @@ const customersSchema = new Schema(
       type: String,
       required: true,
     },
+    fathername: {
+      type: String,
+      required: true,
+    },
     dob: {
       type: String,
       required: true,
@@ -63,6 +67,8 @@ const customersSchema = new Schema(
       type: Boolean,
       default: true,
     },
+    email: String,    // Ensure this field exists
+    mobile: String,
   },
   {
     timestamps: true,

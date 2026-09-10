@@ -183,6 +183,7 @@ const NewEmployee = () => {
         try {
             setLoading(true);
             let finalObj = trimData(values);
+            delete finalObj.password; // Prevent sending password on update
 
             if (photo) {
                 finalObj.profile = photo;
@@ -194,6 +195,7 @@ const NewEmployee = () => {
             messageApi.success('Employee updated successfully');
             setNumber(number + 1);
             setEdit(null);
+            setPhoto(null);
             empForm.resetFields();
         } catch (error) {
             messageApi.error('Unable to update employee');
@@ -359,7 +361,7 @@ const NewEmployee = () => {
                                 name="email"
                                 label="Email"
                                 rules={[{ required: true }]}>
-                                <Input />
+                                <Input disabled={edit ? true : false} />
                             </Item>
                             <Item
                                 name="password"
