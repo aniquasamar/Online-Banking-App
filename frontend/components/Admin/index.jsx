@@ -1,13 +1,12 @@
 import AdminLayout from "../Layout/AdminLayout";
+import Dashboard from "../Shared/Dashboard";
 
-const Dashboard = () => {
+const AdminDashboard = () => {
     return (
         <AdminLayout>
-            <h1 className="text-5xl font-bold text-red-500">
-                Welcome to Admin dashboard
-            </h1>
+            <Dashboard />
         </AdminLayout>
     )
 }
 
-export default Dashboard;
+export default AdminDashboard;

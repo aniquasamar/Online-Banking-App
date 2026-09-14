@@ -1,10 +1,10 @@
-import React from 'react';
 import EmployeeLayout from '../Layout/EmployeeLayout';
+import Dashboard from '../Shared/Dashboard';
 
 const EmployeeDashboard = () => {
   return (
     <EmployeeLayout>
-      <h1 className="text-2xl font-bold">Welcome to Employee Dashboard</h1>
+      <Dashboard />
     </EmployeeLayout>
   );
 };

@@ -2,10 +2,9 @@ import React, { useState } from 'react';
 import {
     MenuFoldOutlined,
     MenuUnfoldOutlined,
-    UploadOutlined,
     UserOutlined,
     DashboardOutlined,
-    VideoCameraOutlined,
+    SwapOutlined,
     LogoutOutlined,
     GiftOutlined,
     BranchesOutlined,
@@ -13,15 +12,15 @@ import {
     UserAddOutlined,
 } from '@ant-design/icons';
 import { Button, Layout, Menu, theme } from 'antd';
-import {Link , useLocation, useNavigate} from "react-router-dom" ;
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import Cookies from 'universal-cookie';
 
 const { Header, Sider, Content } = Layout;
 const cookies = new Cookies();
 
-const AdminLayout = ( {children} ) => {
+const AdminLayout = ({ children }) => {
     const navigate = useNavigate();
-    const {pathname} = useLocation();
+    const { pathname } = useLocation();
     console.log(pathname);
 
     const logoutFunc = () => {
@@ -43,14 +42,14 @@ const AdminLayout = ( {children} ) => {
         },
         // In sidebar navigation items array:
         {
-        key: '/admin/branch',
-        icon: <BranchesOutlined />,
-        label: <Link to="/admin/branch">Branch</Link>,
+            key: '/admin/branch',
+            icon: <BranchesOutlined />,
+            label: <Link to="/admin/branch">Branch</Link>,
         },
         {
-        key: '/admin/currency',
-        icon: <DollarCircleOutlined />,
-        label: <Link to="/admin/currency">Currency</Link>,
+            key: '/admin/currency',
+            icon: <DollarCircleOutlined />,
+            label: <Link to="/admin/currency">Currency</Link>,
         },
         {
             key: '/admin/new-employee',
@@ -61,6 +60,11 @@ const AdminLayout = ( {children} ) => {
             key: '/admin/new-account',
             icon: <UserAddOutlined />,
             label: <Link to="/admin/new-account">New Account</Link>,
+        },
+        {
+            key: '/admin/new-transaction',
+            icon: <SwapOutlined />,
+            label: <Link to="/admin/new-transaction">New Transaction</Link>,
         },
         {
             key: '/admin/logout',
