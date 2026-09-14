@@ -9,6 +9,7 @@ import {
   DashboardOutlined,
   VideoCameraOutlined,
   LogoutOutlined,
+  SwapOutlined,
   GiftOutlined,
   BranchesOutlined,
   DollarCircleOutlined,
@@ -39,6 +40,11 @@ const EmployeeLayout = ({ children }) => {
       key: '/employee/new-account',
       icon: <AccountBookOutlined />,
       label: <Link to="/employee/new-account">New Account</Link>,
+    },
+    {
+      key: '/employee/new-transaction',
+      icon: <SwapOutlined />,
+      label: <Link to="/employee/new-transaction">New Transaction</Link>,
     },
     {
       key: '/admin/logout',

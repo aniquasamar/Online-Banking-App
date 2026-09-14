@@ -13,6 +13,7 @@ const EmployeeDashboard = lazy(() => import('../components/Employee'));
 const PageNotFound = lazy(() => import('../components/PageNotFound'));
 const EmpNewAccount = lazy(() => import('../components/Employee/EmpNewAccount'));
 const AdminNewAccount = lazy(() => import('../components/Admin/AdminNewAccount'));
+const EmpTransaction = lazy(() => import('../components/Employee/EmpTransaction'));
 
 const App = () => {
   return (
@@ -43,6 +44,7 @@ const App = () => {
           >
             <Route index element={<EmployeeDashboard />} />
             <Route path="new-account" element={<EmpNewAccount />} />
+            <Route path="new-transaction" element={<EmpTransaction />} />
             <Route path="*" element={<PageNotFound />} />
           </Route>
           {/* End Employee Related Routes */}

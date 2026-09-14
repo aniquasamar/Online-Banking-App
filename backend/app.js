@@ -15,6 +15,8 @@ const currencyRouter = require('./routes/currency.routes');
 const loginRouter = require('./routes/login.routes');
 const verifyRouter = require('./routes/verify.routes');
 const customerRouter = require('./routes/customers.routes');
+const findByAccountRouter = require('./routes/findByAccount.routes');
+const transactionRouter = require('./routes/transaction.routes');
 
 
 // view engine setup
@@ -38,6 +40,8 @@ app.use('/api/branch', branchRouter);
 app.use('/api/currency', currencyRouter);
 app.use('/api/login', loginRouter);
 app.use('/api/customers', customerRouter);
+app.use('/api/customers/find-account', findByAccountRouter);
+app.use('/api/transactions', transactionRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

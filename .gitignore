@@ -6,6 +6,7 @@ node_modules/
 
 #dummy files
 frontend/components/Shared/dummy.txt
+backend/public
 
 # Build folders
 dist

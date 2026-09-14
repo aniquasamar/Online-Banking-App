@@ -77,9 +77,25 @@ const deleteData = async (req, res, Schema) => {
   }
 };
 
+const findByAccountNo = async (req,res,schema) => {
+  try{
+    const query = req.body;
+    const dbRes = await dbService.findOneRecord(query,schema);
+    return res.status(200).json({
+      message : "Record Found!",
+      data : dbRes
+    })
+  }catch(err){
+    return res.status(500).json({
+      message : "Internal Server Error!"
+    })
+  }
+};
+
 module.exports = {
     createData,
     getData,
     updateData,
-    deleteData
+    deleteData,
+    findByAccountNo
 }
