@@ -69,6 +69,7 @@ const customersSchema = new Schema(
     },
     email: String,    // Ensure this field exists
     mobile: String,
+    customerLoginId : String,
   },
   {
     timestamps: true,

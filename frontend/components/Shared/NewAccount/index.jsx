@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import EmployeeLayout from '../../Layout/EmployeeLayout';
 import {
   Button,
   Card,
@@ -64,8 +63,12 @@ const NewAccount = () => {
       try {
         const httpReq = http();
         const { data } = await httpReq.get('/api/customers');
-        setAllCustomer(data.data);
-        setFinalCustomer(data.data);
+        setAllCustomer(
+          data?.data.filter((item)=>item.branch == userInfo.branch)
+        );
+        setFinalCustomer(
+          data?.data.filter((item)=>item.branch == userInfo.branch)
+        );
       } catch (error) {
         messageApi.error('Unable to fetch data');
       }
@@ -94,7 +97,8 @@ const NewAccount = () => {
 
       const httpReq = http();
 
-      await httpReq.post('/api/users', finalObj);
+      const {data} = await httpReq.post('/api/users', finalObj);
+      finalObj.customerLoginId = data?.data?._id;
       const obj = {
         email: finalObj.email,
         password: finalObj.password
@@ -165,7 +169,7 @@ const NewAccount = () => {
   };
 
   //update isActive button from employee list
-  const updateIsActive = async (id, isActive) => {
+  const updateIsActive = async (id, isActive, loginId) => {
     try {
 
       const obj = {
@@ -173,6 +177,7 @@ const NewAccount = () => {
       };
 
       const httpReq = http();
+      await httpReq.put(`/api/users/${loginId}`, obj);
       await httpReq.put(`/api/customers/${id}`, obj);
 
       messageApi.success('Record updated successfully');
@@ -247,6 +252,8 @@ const NewAccount = () => {
       setLoading(true);
       let finalObj = trimData(values);
       delete finalObj.password;
+      delete finalObj.email;
+      delete finalObj.accountNumber;
 
       if (photo) {
         finalObj.profile = photo;
@@ -276,9 +283,10 @@ const NewAccount = () => {
     }
   };
   // delete customer
-  const onDeleteCustomer = async (id) => {
+  const onDeleteCustomer = async (id, loginId) => {
     try {
       const httpReq = http();
+      await httpReq.delete(`/api/users/${loginId}`);
       await httpReq.delete(`/api/customers/${id}`);
 
       messageApi.success('Customer deleted successfully!');
@@ -287,6 +295,12 @@ const NewAccount = () => {
       messageApi.error('Unable to delete customer');
     }
   };
+
+  const onCloseModal = () => {
+    setAccountModal(false);
+    setEdit(null);
+    accountForm.resetFields();
+  }
 
   // columns for table
   const columns = [
@@ -398,7 +412,7 @@ const NewAccount = () => {
             title="Are you sure?"
             description="Once you update, you can also re-update!"
             onCancel={() => messageApi.info("No changes made!")}
-            onConfirm={() => updateIsActive(obj._id, obj.isActive)}
+            onConfirm={() => updateIsActive(obj._id, obj.isActive, obj.customerLoginId)}
           >
             <Button
               type="text"
@@ -425,7 +439,7 @@ const NewAccount = () => {
             title="Are you sure?"
             description="Once you deleted you can not restore"
             onCancel={() => messageApi.info("No changes made!")}
-            onConfirm={() => onDeleteCustomer(obj._id)}
+            onConfirm={() => onDeleteCustomer(obj._id, obj.customerLoginId)}
           >
             <Button
               type="text"
@@ -439,7 +453,7 @@ const NewAccount = () => {
   ];
 
   return (
-    <EmployeeLayout>
+    <div>
       {context}
       <div className="grid">
         <Card
@@ -471,20 +485,43 @@ const NewAccount = () => {
         <Modal
           title="Open New Account"
           open={accountModal}
-          onCancel={() => setAccountModal(false)}
+          onCancel={onCloseModal}
           width={820}
           footer={null}
         >
           <Form form={accountForm} layout="vertical" onFinish={edit ? onUpdate : onFinish}>
-            <div className="grid md:grid-cols-3 gap-x-3">
-              <Item
-                label="Account Number"
-                name="accountNumber"
-                rules={[{ required: true }]}
-              >
-                <Input placeholder="Enter Account Number" disabled />
-              </Item>
+            {
+              !edit &&
+              <div className="grid md:grid-cols-3 gap-x-3">
+                <Item
+                  label="Account Number"
+                  name="accountNumber"
+                  rules={[{ required: true }]}
+                >
+                  <Input placeholder="Enter Account Number" disabled />
+                </Item>
+                <Item
+                  label="Email"
+                  name="email"
+                  rules={[{ required: true }]}
+                >
+                  <Input
+                    disabled={edit ? true : false}
+                    placeholder="Enter Email" />
+                </Item>
 
+                <Item
+                  label="Password"
+                  name="password"
+                  rules={[{ required: edit ? false : true }]}
+                >
+                  <Input
+                    disabled={edit ? true : false}
+                    placeholder="Enter Password" />
+                </Item>
+              </div>
+            }
+            <div className="grid md:grid-cols-3 gap-x-3">
               <Item
                 label="Full Name"
                 name="fullname"
@@ -503,32 +540,11 @@ const NewAccount = () => {
 
               <Item
                 label="Father Name"
-                name="fatherName"
+                name="fathername"
                 rules={[{ required: true }]}
               >
                 <Input placeholder="Enter Father Name" />
               </Item>
-
-              <Item
-                label="Email"
-                name="email"
-                rules={[{ required: true }]}
-              >
-                <Input 
-                disabled={edit ? true : false} 
-                placeholder="Enter Email" />
-              </Item>
-
-              <Item
-                label="Password"
-                name="password"
-                rules={[{ required: edit ? false : true} ]}
-              >
-                <Input 
-                disabled={edit ? true : false}
-                placeholder="Enter Password" />
-              </Item>
-
               <Item
                 label="DOB"
                 name="dob"
@@ -599,7 +615,7 @@ const NewAccount = () => {
           </Form>
         </Modal>
       </div>
-    </EmployeeLayout>
+    </div>
   );
 };
 
