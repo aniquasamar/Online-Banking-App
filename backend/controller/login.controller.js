@@ -2,6 +2,7 @@ require('dotenv').config();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const dbService = require('../services/db.service');
+const Customers = require("../model/customers.model");
 
 const loginFunc = async (req, res, Schema) => {
   try {
@@ -19,10 +20,23 @@ const loginFunc = async (req, res, Schema) => {
           const plainUser = dbRes.toObject();
           delete plainUser.password;
 
-          const payload = {
+          const db = await Customers.findOne(
+            { email },
+            { _id: 0, accountNumber: 1}
+          );
+
+          let payload = null;
+          db ?
+          payload = {
+            ...plainUser,
+            _id: dbRes._id.toString(),
+            accountNumber: db.accountNumber
+          }
+          :
+          payload = {
             ...plainUser,
             _id: dbRes._id.toString()
-          };
+          }
 
           const secretKey = process.env.JWT_SECRET ;
 
