@@ -154,11 +154,78 @@ const getTransactionSummary = async (req, res, schema) => {
   };
 };
 
+// const getPaginatedTransactions = async (req,res,schema) => {
+//   try {
+//     const { accountNumber, branch, page = 1, pageSize = 10 } = req.query;
+
+//     const filter = {};
+//     if (accountNumber) filter.accountNumber = accountNumber;
+//     if (branch) filter.branch = branch;
+
+//     const skip = (parseInt(page) - 1) * parseInt(pageSize);
+//     const limit = parseInt(pageSize);
+
+//     const [transactions, total] = await Promise.all([
+//       schema.find(filter)
+//         .sort({ createdAt: -1 }) // Optional: newest first
+//         .skip(skip)
+//         .limit(limit),
+//       schema.countDocuments(filter)
+//     ]);
+
+//     res.status(200).json({
+//       data: transactions,
+//       total,
+//       page: parseInt(page),
+//       pageSize: parseInt(pageSize)
+//     });
+//   } catch (error) {
+//     res.status(500).json({ message: "Error fetching transactions", error });
+//   }
+// };
+
+const getPaginatedTransactions = async (req, res, Schema) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    let query = {};
+
+    if (req.query.accountNumber) {
+      query.accountNumber = Number(req.query.accountNumber);
+    }
+    if (req.query.branch) {
+      query.branch = req.query.branch;
+    }
+
+    const total = await Schema.countDocuments(query);
+    const data = await Schema.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    return res.status(200).json({
+      message: 'Transactions fetched successfully',
+      data,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Internal server error',
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
     createData,
     getData,
     updateData,
     deleteData,
     findByAccountNo,
-    getTransactionSummary
+    getTransactionSummary,
+    getPaginatedTransactions
 }
