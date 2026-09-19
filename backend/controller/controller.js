@@ -154,36 +154,6 @@ const getTransactionSummary = async (req, res, schema) => {
   };
 };
 
-// const getPaginatedTransactions = async (req,res,schema) => {
-//   try {
-//     const { accountNumber, branch, page = 1, pageSize = 10 } = req.query;
-
-//     const filter = {};
-//     if (accountNumber) filter.accountNumber = accountNumber;
-//     if (branch) filter.branch = branch;
-
-//     const skip = (parseInt(page) - 1) * parseInt(pageSize);
-//     const limit = parseInt(pageSize);
-
-//     const [transactions, total] = await Promise.all([
-//       schema.find(filter)
-//         .sort({ createdAt: -1 }) // Optional: newest first
-//         .skip(skip)
-//         .limit(limit),
-//       schema.countDocuments(filter)
-//     ]);
-
-//     res.status(200).json({
-//       data: transactions,
-//       total,
-//       page: parseInt(page),
-//       pageSize: parseInt(pageSize)
-//     });
-//   } catch (error) {
-//     res.status(500).json({ message: "Error fetching transactions", error });
-//   }
-// };
-
 const getPaginatedTransactions = async (req, res, Schema) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -197,6 +167,20 @@ const getPaginatedTransactions = async (req, res, Schema) => {
     }
     if (req.query.branch) {
       query.branch = req.query.branch;
+    }
+
+    // Date range filtering (createdAt)
+    if (req.query.fromDate && req.query.toDate) {
+      const startDate = new Date(req.query.fromDate);
+      startDate.setHours(0, 0, 0, 0);
+
+      const endDate = new Date(req.query.toDate);
+      endDate.setHours(23, 59, 59, 999);
+
+      query.createdAt = {
+        $gte: startDate,
+        $lte: endDate,
+      };
     }
 
     const total = await Schema.countDocuments(query);

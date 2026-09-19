@@ -1,17 +1,18 @@
-import axios from"axios";
+import axios from "axios";
+import jsPDF from 'jspdf';
+import autoTable from "jspdf-autotable";
+
 
 //http request
-export const http = (accessToken=null) =>{
-    axios.defaults.baseURL = import.meta.env.VITE_BASEURL;
-    if(accessToken){
-        axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-    }
-    return axios;
+export const http = (accessToken = null) => {
+  axios.defaults.baseURL = import.meta.env.VITE_BASEURL;
+  if (accessToken) {
+    axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+  }
+  return axios;
 }
 
-
 //trim data
-
 export const trimData = (obj) => {
   let finalObj = {};
 
@@ -57,23 +58,23 @@ export const fetchData = async (api) => {
 
 // formate date
 export const formatDate = (d) => {
-    const date = new Date(d);
-    let dd = date.getDate();
-    let mm = date.getMonth() + 1;
-    let yy = date.getFullYear();
-    let tt = date.toLocaleTimeString();
-    dd = dd < 10 ? "0" + dd : dd;
-    mm = mm < 10 ? "0" + mm : mm;
-    return `${dd}-${mm}-${yy} ${tt}`;
+  const date = new Date(d);
+  let dd = date.getDate();
+  let mm = date.getMonth() + 1;
+  let yy = date.getFullYear();
+  let tt = date.toLocaleTimeString();
+  dd = dd < 10 ? "0" + dd : dd;
+  mm = mm < 10 ? "0" + mm : mm;
+  return `${dd}-${mm}-${yy} ${tt}`;
 };
 
-// print transactions history
-  const handlePrint = () => {
-    const printContent = printRef.current;
-    if (!printContent) return;
+// Print transactions history handler
+export const handlePrint = () => {
+  const printContent = printRef.current;
+  if (!printContent) return;
 
-    const printWindow = window.open('', '', 'width=900,height=650');
-    printWindow.document.write(`
+  const printWindow = window.open('', '', 'width=900,height=650');
+  printWindow.document.write(`
       <html>
         <head>
           <title>Transaction History</title>
@@ -109,15 +110,8 @@ export const formatDate = (d) => {
               color: red;
               font-weight: 600;
             }
-            /* Hide Ant Design pagination and extra UI controls when printing */
-            .ant-pagination, 
-            .ant-table-pagination, 
-            .ant-table-footer,
-            button {
-              display: none !important;
-            }
             @media print {
-              button {
+              button, form, .ant-pagination {
                 display: none !important;
               }
             }
@@ -129,8 +123,80 @@ export const formatDate = (d) => {
         </body>
       </html>
     `);
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-    printWindow.close();
-  };
+  printWindow.document.close();
+  printWindow.focus();
+  printWindow.print();
+  printWindow.close();
+};
+
+export const downloadTransaction = (data = []) => {
+  if (!data.length) return alert("No transaction data found!");
+
+  const doc = new jsPDF({ orientation: "landscape" }); // Landscape gives more room for extra columns
+  const pageWidth = doc.internal.pageSize.getWidth();
+
+  // Title
+  doc.setFontSize(16);
+  doc.setFont("helvetica", "bold");
+  const title = "Bank Transactions Details";
+  const textWidth = doc.getTextWidth(title);
+  doc.text(title, (pageWidth - textWidth) / 2, 15);
+
+  // Prepare table data including Final Balance and fixing the currency font
+  const tableData = data.map((item) => [
+    item.accountNumber || "-",
+    item.branch || "-",
+    (item.type || "").toUpperCase(),
+    `Rs. ${Number(item.amount || 0).toLocaleString("en-IN")}`,
+    `Rs. ${Number(item.finalBalance || 0).toLocaleString("en-IN")}`,
+    item.createdAt ? new Date(item.createdAt).toLocaleString() : "-",
+  ]);
+
+  // Add transactions table with Final Balance column
+  autoTable(doc, {
+    head: [["Account No", "Branch", "Type", "Amount", "Final Balance", "Date & Time"]],
+    body: tableData,
+    startY: 25,
+    theme: "grid",
+    styles: { halign: "center", fontSize: 9 },
+    headStyles: { fillColor: [0, 102, 204], halign: "center" },
+    columnStyles: { 
+      3: { halign: "right" }, // Amount column
+      4: { halign: "right" }  // Final Balance column
+    },
+  });
+
+  // Calculate totals
+  const totalCredit = data
+    .filter((t) => t.type === "credit")
+    .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+
+  const totalDebit = data
+    .filter((t) => t.type === "debit")
+    .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+    
+  const balance = totalCredit - totalDebit;
+
+  const finalY = doc.lastAutoTable.finalY + 10;
+
+  // Totals summary table
+  autoTable(doc, {
+    startY: finalY,
+    theme: "grid",
+    head: [["Summary", "Amount"]],
+    body: [
+      ["Total Credit", `Rs. ${totalCredit.toLocaleString("en-IN")}`],
+      ["Total Debit", `Rs. ${totalDebit.toLocaleString("en-IN")}`],
+      ["Balance", `Rs. ${balance.toLocaleString("en-IN")}`],
+    ],
+    headStyles: { fillColor: [60, 179, 113], halign: "center" },
+    styles: { halign: "right", fontStyle: "bold", fontSize: 10 },
+    columnStyles: {
+      0: { halign: "left" },
+      1: { halign: "right" },
+    },
+  });
+
+  // Save PDF
+  doc.save("Bank_Transactions.pdf");
+};

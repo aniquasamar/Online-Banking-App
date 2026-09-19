@@ -100,23 +100,6 @@ const NewEmployee = () => {
     const onSearch = (e) => {
         let value = e.target.value.trim().toLowerCase();
 
-        //THIS WAS NOT WORKING SO CHANGED IT TO GEMINI CODE GIVEN BELOW
-        // let filter = finalEmployee.filter((emp) => {
-        //     if (emp.fullname?.toLowerCase().indexOf(value) !== -1) {
-        //         return emp;
-        //     } else if (emp.userType?.toLowerCase().indexOf(value) !== -1) {
-        //         return emp;
-        //     } else if (emp.email?.toLowerCase().indexOf(value) !== -1) {
-        //         return emp;
-        //     } else if (emp.branch?.toLowerCase().indexOf(value) !== -1) {
-        //         return emp;
-        //     } else if (emp.mobile?.toString().toLowerCase().indexOf(value) !== -1) {
-        //         return emp;
-        //     } else if (emp.address?.toLowerCase().indexOf(value) !== -1) {
-        //         return emp;
-        //     }
-        // });
-
         // 1. If input is empty/cleared, reset table to all records
         if (!value) {
             setAllEmployee(finalEmployee);

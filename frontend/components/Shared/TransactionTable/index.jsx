@@ -1,105 +1,18 @@
-// import React, { useEffect, useState } from "react";
-// import { Table } from "antd";
-// import { formatDate, http } from "../../../modules/modules";
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  Table,
+  Card,
+  Tag,
+  Button,
+  DatePicker,
+  Input,
+  Form,
+  message,
+} from 'antd';
+import { PrinterOutlined, SearchOutlined, DownloadOutlined } from '@ant-design/icons';
+import { http, handlePrint, downloadTransaction } from '../../../modules/modules';
 
-// const TransactionTable = ({ query = {} }) => {
-//   const [data, setData] = useState([]);
-//   const [total, setTotal] = useState(0);
-//   const [accountNumber, setAccountNumber] = useState(query.accountNumber || "");
-//   const [branch, setBranch] = useState(query.branch || "");
-//   const [pagination, setPagination] = useState({
-//     current: 1,
-//     pageSize: 10
-//   });
-//   const [loading, setLoading] = useState(false);
-
-//   const fetchTransactions = async (params = {}) => {
-//     setLoading(true);
-//     const searchParams = new URLSearchParams({
-//       page: params.current || 1,
-//       pageSize: params.pageSize || 10,
-//     });
-
-//     // Add filters from state OR initial query
-//     if (accountNumber) searchParams.append("accountNumber", accountNumber);
-//     if (branch) searchParams.append("branch", branch);
-//     try {
-//       const httpReq = http();
-//       const res = await httpReq.get(`/api/transactions/pagination?${searchParams.toString()}`);
-//       setData(res.data.data);
-//       setTotal(res.data.total);
-//       setPagination({
-//         current: res.data.page,
-//         pageSize: res.data.pageSize
-//       });
-//     } catch (err) {
-//       console.error("Failed to fetch transactions", err);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   useEffect(() => {
-//     fetchTransactions(pagination);
-//   }, [query]); // Re-run when new props come in
-
-//   const handleTableChange = (pagination) => {
-//     fetchTransactions(pagination);
-//   };
-
-//   const columns = [
-//     { 
-//         title: "Account Number", 
-//         dataIndex: "accountNumber", 
-//         key: "accountNumber" 
-//     },
-//     { 
-//         title: "Branch", 
-//         dataIndex: "branch", 
-//         key: "branch" 
-//     },
-//     { 
-//         title: "Type", 
-//         dataIndex: "transactionType", 
-//         key: "transactionType" 
-//     },
-//     { 
-//         title: "Amount", 
-//         dataIndex: "transactionAmount", 
-//         key: "transactionAmount" 
-//     },
-//     { 
-//       title: "Date", 
-//       dataIndex: "createdAt", 
-//       key: "createdAt",
-//       render : (d) => formatDate(d) 
-//     },
-//   ];
-
-//   return (
-//     <div className="p-4">
-//       <Table
-//         rowKey="_id"
-//         columns={columns}
-//         dataSource={data}
-//         pagination={{
-//           total: total,
-//           current: pagination.current,
-//           pageSize: pagination.pageSize
-//         }}
-//         loading={loading}
-//         onChange={handleTableChange}
-//       />
-//     </div>
-//   );
-// };
-
-// export default TransactionTable;
-
-import React, { useEffect, useState, useRef } from 'react';
-import { Table, Card, Tag, message, Button } from 'antd';
-import { PrinterOutlined } from '@ant-design/icons';
-import { http, handlePrint } from '../../../modules/modules';
+const { Item } = Form;
 
 const TransactionTable = ({ accountNumber, branch }) => {
   const [data, setData] = useState([]);
@@ -107,20 +20,33 @@ const TransactionTable = ({ accountNumber, branch }) => {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [filterQuery, setFilterQuery] = useState({});
 
+  const [filterForm] = Form.useForm();
   const printRef = useRef(null);
 
-  const fetchTransactions = async (currentPage = 1, currentLimit = 10) => {
+  // Fetch transactions with pagination and date filter query
+  const fetchTransactions = async (
+    currentPage = 1,
+    currentLimit = 10,
+    filters = {}
+  ) => {
     try {
       setLoading(true);
       const httpReq = http();
       let url = `/api/transactions/pagination?page=${currentPage}&limit=${currentLimit}`;
 
-      if (accountNumber) {
-        url += `&accountNumber=${accountNumber}`;
+      const activeAcc = filters.accountNumber || accountNumber;
+      if (activeAcc) {
+        url += `&accountNumber=${activeAcc}`;
       }
+
       if (branch) {
         url += `&branch=${branch}`;
+      }
+
+      if (filters.fromDate && filters.toDate) {
+        url += `&fromDate=${filters.fromDate}&toDate=${filters.toDate}`;
       }
 
       const res = await httpReq.get(url);
@@ -133,10 +59,23 @@ const TransactionTable = ({ accountNumber, branch }) => {
     }
   };
 
-
   useEffect(() => {
-    fetchTransactions(page, pageSize);
-  }, [accountNumber, branch, page, pageSize]);
+    fetchTransactions(page, pageSize, filterQuery);
+  }, [accountNumber, branch, page, pageSize, filterQuery]);
+
+  // Form submit for date range and optional account number filter
+  const onFinish = (values) => {
+    const formattedFilters = {
+      fromDate: values.fromDate ? values.fromDate.format('YYYY-MM-DD') : undefined,
+      toDate: values.toDate ? values.toDate.format('YYYY-MM-DD') : undefined,
+      accountNumber: values.accountNumber || undefined,
+    };
+
+    setFilterQuery(formattedFilters);
+    setPage(1);
+    fetchTransactions(1, pageSize, formattedFilters);
+  };
+
 
   const columns = [
     {
@@ -193,17 +132,68 @@ const TransactionTable = ({ accountNumber, branch }) => {
     <Card
       title="Transaction History"
       extra={
-        <Button
-          type="primary"
-          icon={<PrinterOutlined />}
-          onClick={handlePrint}
-          className="!bg-blue-500 !font-semibold"
-        >
-          Print
-        </Button>
+        <div className="flex gap-3">
+          <Button
+            type="primary"
+            icon={<DownloadOutlined />}
+            onClick={() => downloadTransaction(data)}
+            className="!bg-emerald-600 !font-semibold"
+          >
+            Download
+          </Button>
+          <Button
+            type="primary"
+            icon={<PrinterOutlined />}
+            onClick={handlePrint}
+            className="!bg-blue-500 !font-semibold"
+          >
+            Print
+          </Button>
+        </div>
       }
       style={{ overflowX: 'auto' }}
     >
+      {/* Date Range and Account Number Filter Form */}
+      <Form
+        form={filterForm}
+        layout="inline"
+        onFinish={onFinish}
+        className="mb-4 flex flex-wrap gap-2 items-center"
+      >
+        <Item
+          name="fromDate"
+          rules={[{ required: true, message: 'Please select from date' }]}
+        >
+          <DatePicker placeholder="From Date" />
+        </Item>
+
+        <Item
+          name="toDate"
+          rules={[{ required: true, message: 'Please select to date' }]}
+        >
+          <DatePicker placeholder="To Date" />
+        </Item>
+
+        {/* If no accountNumber prop is passed from parent (e.g., Admin/Employee view), allow typing one */}
+        {!accountNumber && (
+          <Item name="accountNumber">
+            <Input placeholder="Account Number (Optional)" />
+          </Item>
+        )}
+
+        <Item>
+          <Button
+            type="primary"
+            htmlType="submit"
+            icon={<SearchOutlined />}
+            className="!bg-blue-500 !font-semibold"
+          >
+            Fetch
+          </Button>
+        </Item>
+      </Form>
+
+      {/* Printable Table Container */}
       <div ref={printRef}>
         <Table
           columns={columns}

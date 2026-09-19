@@ -13,8 +13,6 @@ const sendEmail = (req, res) => {
     });
 
     // --- EMAIL TEMPLATE ---
-    // This is where you paste the HTML code from the template file
-    // mentioned in the video's description [00:08:49]
     const emailTemplate = `
     <!DOCTYPE html>
 <html>
@@ -80,8 +78,6 @@ const sendEmail = (req, res) => {
   </body>
 </html>
     `;
-    // Note: The instructor modifies the template to insert the 
-    // email [00:09:32] and password [00:09:46] variables.
 
     const mailOptions = {
         from: process.env.ADMIN_EMAIL,
