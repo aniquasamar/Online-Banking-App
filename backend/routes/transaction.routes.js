@@ -2,11 +2,12 @@ const express = require('express');
 const router = express.Router();
 const Transactions = require('../model/transaction.model');
 const controller = require('../controller/controller');
+const {verifyToken, isAdmin, isAdminEmployee, isAdminEmployeeCustomer} = require("../middlewares/middleware");
 
-router.post('/', (req, res) => controller.createData(req, res, Transactions));
+router.post('/', verifyToken, isAdminEmployee, (req, res) => controller.createData(req, res, Transactions));
 router.get('/', (req, res) => controller.getData(req, res, Transactions));
-router.get('/summary', (req, res) => controller.getTransactionSummary(req, res, Transactions));
-router.get('/pagination', (req, res) =>
+router.get('/summary', verifyToken, isAdminEmployeeCustomer, (req, res) => controller.getTransactionSummary(req, res, Transactions));
+router.get('/pagination', verifyToken, isAdminEmployeeCustomer, (req, res) =>
     controller.getPaginatedTransactions(req, res, Transactions)
 );
 // router.get('/:id', (req, res) => controller.findOne(req, res, Transactions));

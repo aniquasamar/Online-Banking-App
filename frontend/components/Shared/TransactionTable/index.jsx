@@ -11,10 +11,13 @@ import {
 } from 'antd';
 import { PrinterOutlined, SearchOutlined, DownloadOutlined } from '@ant-design/icons';
 import { http, handlePrint, downloadTransaction } from '../../../modules/modules';
+import Cookies from "universal-cookie";
 
+const cookies = new Cookies();
 const { Item } = Form;
 
 const TransactionTable = ({ accountNumber, branch }) => {
+  const token = cookies.get("authToken");
   const [data, setData] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -33,7 +36,7 @@ const TransactionTable = ({ accountNumber, branch }) => {
   ) => {
     try {
       setLoading(true);
-      const httpReq = http();
+      const httpReq = http(token);
       let url = `/api/transactions/pagination?page=${currentPage}&limit=${currentLimit}`;
 
       const activeAcc = filters.accountNumber || accountNumber;

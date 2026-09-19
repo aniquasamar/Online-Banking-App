@@ -11,10 +11,13 @@ import {
 } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { http } from '../../../modules/modules';
+import Cookies from "universal-cookie";
 
+const cookies = new Cookies();
 const { Item } = Form;
 
 const NewTransaction = () => {
+  const token = cookies.get("authToken");
   const [accountNumber, setAccountNumber] = useState('');
   const [customerData, setCustomerData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -97,7 +100,7 @@ const NewTransaction = () => {
         createdBy: userInfo?.fullname || 'employee',
       };
 
-      const httpReq = http();
+      const httpReq = http(token);
 
       // 1. Create transaction entry
       await httpReq.post('/api/transactions', transactionPayload);

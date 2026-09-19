@@ -5,13 +5,15 @@ import { trimData, http, fetchData, uploadFile } from "../../../modules/modules"
 import swal from "sweetalert";
 import useSWR from "swr";
 import { useEffect, useState } from "react";
+import Cookies from "universal-cookie";
 
-
+const cookies = new Cookies();
 const { Item } = Form;
 
 const NewEmployee = () => {
 
     //states collection
+    const token = cookies.get("authToken");
     const [empForm] = Form.useForm();
     const [messageApi, context] = message.useMessage();
     const [loading, setLoading] = useState(false);
@@ -45,7 +47,7 @@ const NewEmployee = () => {
     useEffect(() => {
         const fetcher = async () => {
             try {
-                const httpReq = http();
+                const httpReq = http(token);
                 const { data } = await httpReq.get('/api/users');
                 setAllEmployee(
                     data?.data.filter((item)=>item.userType!= "customer")
@@ -67,7 +69,7 @@ const NewEmployee = () => {
             finalObj.profile = photo ? photo : "bankImages/dummy.jpg";
             finalObj.key = finalObj.email;
             finalObj.userType = "employee";
-            const httpReq = http();      //for token request or without token request
+            const httpReq = http(token);      //for token request or without token request
             const { data } = await httpReq.post(`/api/users`, finalObj);
 
             const obj = {
@@ -135,7 +137,7 @@ const NewEmployee = () => {
                 isActive: !isActive,
             };
 
-            const httpReq = http();
+            const httpReq = http(token);
             await httpReq.put(`/api/users/${id}`, obj);
 
             messageApi.success('Record updated successfully');
@@ -148,7 +150,7 @@ const NewEmployee = () => {
     //delete employee from employee list
     const onDeleteUser = async (id) => {
         try {
-            const httpReq = http();
+            const httpReq = http(token);
             await httpReq.delete(`/api/users/${id}`);
 
             messageApi.success('Employee deleted successfully!');
@@ -174,7 +176,7 @@ const NewEmployee = () => {
                 finalObj.profile = photo;
             }
 
-            const httpReq = http();
+            const httpReq = http(token);
             await httpReq.put(`/api/users/${edit._id}`, finalObj);
 
             messageApi.success('Employee updated successfully');
