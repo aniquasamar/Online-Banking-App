@@ -69,64 +69,154 @@ export const formatDate = (d) => {
 };
 
 // Print transactions history handler
-export const handlePrint = () => {
-  const printContent = printRef.current;
-  if (!printContent) return;
+// export const handlePrint = () => {
+//   const printContent = printRef.current;
+//   if (!printContent) return;
+
+//   const printWindow = window.open('', '', 'width=900,height=650');
+//   printWindow.document.write(`
+//       <html>
+//         <head>
+//           <title>Transaction History</title>
+//           <style>
+//             body {
+//               font-family: Arial, sans-serif;
+//               padding: 20px;
+//             }
+//             h2 {
+//               text-align: center;
+//               margin-bottom: 20px;
+//             }
+//             table {
+//               width: 100%;
+//               border-collapse: collapse;
+//               margin-top: 10px;
+//             }
+//             th, td {
+//               border: 1px solid #ddd;
+//               padding: 8px 12px;
+//               text-align: left;
+//               font-size: 13px;
+//             }
+//             th {
+//               background-color: #f4f6f9;
+//               font-weight: bold;
+//             }
+//             .credit {
+//               color: green;
+//               font-weight: 600;
+//             }
+//             .debit {
+//               color: red;
+//               font-weight: 600;
+//             }
+//             @media print {
+//               button, form, .ant-pagination {
+//                 display: none !important;
+//               }
+//             }
+//           </style>
+//         </head>
+//         <body>
+//           <h2>Transaction History</h2>
+//           ${printContent.innerHTML}
+//         </body>
+//       </html>
+//     `);
+//   printWindow.document.close();
+//   printWindow.focus();
+//   printWindow.print();
+//   printWindow.close();
+// };
+
+// Print transactions history handler
+export const handlePrint = (data = []) => {
+  if (!data.length) return alert("No transaction data found to print!");
 
   const printWindow = window.open('', '', 'width=900,height=650');
+  
+  // Generate table rows dynamically from data
+  const rowsHTML = data.map((item) => `
+    <tr>
+      <td>${item.accountNumber || "-"}</td>
+      <td>${item.branch || "-"}</td>
+      <td><span class="${item.type}">${(item.type || "").toUpperCase()}</span></td>
+      <td style="text-align: right;">Rs. ${Number(item.amount || 0).toLocaleString("en-IN")}</td>
+      <td style="text-align: right;">Rs. ${Number(item.finalBalance || 0).toLocaleString("en-IN")}</td>
+      <td>${item.createdAt ? new Date(item.createdAt).toLocaleString() : "-"}</td>
+    </tr>
+  `).join('');
+
   printWindow.document.write(`
-      <html>
-        <head>
-          <title>Transaction History</title>
-          <style>
-            body {
-              font-family: Arial, sans-serif;
-              padding: 20px;
-            }
-            h2 {
-              text-align: center;
-              margin-bottom: 20px;
-            }
-            table {
-              width: 100%;
-              border-collapse: collapse;
-              margin-top: 10px;
-            }
-            th, td {
-              border: 1px solid #ddd;
-              padding: 8px 12px;
-              text-align: left;
-              font-size: 13px;
-            }
-            th {
-              background-color: #f4f6f9;
-              font-weight: bold;
-            }
-            .credit {
-              color: green;
-              font-weight: 600;
-            }
-            .debit {
-              color: red;
-              font-weight: 600;
-            }
-            @media print {
-              button, form, .ant-pagination {
-                display: none !important;
-              }
-            }
-          </style>
-        </head>
-        <body>
-          <h2>Transaction History</h2>
-          ${printContent.innerHTML}
-        </body>
-      </html>
-    `);
+    <html>
+      <head>
+        <title>Transaction History</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+          }
+          h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+          }
+          th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+            font-size: 13px;
+          }
+          th {
+            background-color: #0066cc;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+          }
+          .credit {
+            color: green;
+            font-weight: 600;
+          }
+          .debit {
+            color: red;
+            font-weight: 600;
+          }
+        </style>
+      </head>
+      <body>
+        <h2>Bank Transactions Details</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Account No</th>
+              <th>Branch</th>
+              <th>Type</th>
+              <th>Amount</th>
+              <th>Final Balance</th>
+              <th>Date & Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHTML}
+          </tbody>
+        </table>
+      </body>
+    </html>
+  `);
+  
   printWindow.document.close();
   printWindow.focus();
-  printWindow.print();
-  printWindow.close();
+  
+  // Give it a brief moment to render before triggering print
+  setTimeout(() => {
+    printWindow.print();
+    printWindow.close();
+  }, 250);
 };
 
 export const downloadTransaction = (data = []) => {
